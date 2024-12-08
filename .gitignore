@@ -1,0 +1,10 @@
+# ignore csv files
+*.csv
+# ignore xlsx files
+*.xlsx
+# ignore env files
+*.env
+# ignore ipynb files
+*.ipynb
+# ignore temp files
+temp*.py
