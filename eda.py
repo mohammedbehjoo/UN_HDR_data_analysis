@@ -74,5 +74,16 @@ print(f"Describe df_HDI:\n{df_HDI.describe()}\n","-"*30)
 with open(df_hdi_txt,"a") as file:
     file.write("Describe the df_HDI dataframe:\n")
     file.write(df_HDI.describe().to_string())
-    file.write("\n"+"-"*30)
+    file.write("\n"+"-"*30+"\n")
     print(f"df_HDI describe is written to the file {df_hdi_txt}\n","-"*30)
+    
+# check the dtypes of the dataframe.
+print(f"dtypes of df_HDI:\n{df_HDI.dtypes}\n","-"*30)
+
+with open(df_hdi_txt,"a") as file:
+    file.write("dtypes of df_HDI:\n")
+    file.write(df_HDI.dtypes.to_string())
+    file.write("\n"+"-"*30+"\n")
+    print(f"dtypes of df_HDI is written at {df_hdi_txt}.\n","-"*30)
+    
+# 
