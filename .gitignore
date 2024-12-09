@@ -8,3 +8,5 @@
 *.ipynb
 # ignore temp files
 temp*.py
+# ignore token
+.token
