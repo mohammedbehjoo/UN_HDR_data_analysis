@@ -60,6 +60,15 @@ df_HDI=pd.read_excel(filepath,sheet_name="HDI")
 # let's filter and remove the columns that their names contain "unnamed".
 df_HDI=df_HDI.loc[:,~df_HDI.columns.str.contains("^Unnamed")]
 
+# let's rename the columns to have better namings
+df_HDI.rename(columns={"Human Development Index (HDI) ":"HDI","HDI rank.1":"HDI_rank"},inplace=True)
+
+# cast the specified columns to the numeric values
+df_HDI[["HDI","Expected years of schooling","Mean years of schooling","Gross national income (GNI) per capita","GNI per capita rank minus HDI rank","HDI_rank"]]=df_HDI[["HDI","Expected years of schooling","Mean years of schooling","Gross national income (GNI) per capita","GNI per capita rank minus HDI rank","HDI_rank"]].apply(pd.to_numeric,errors="coerce")
+
+# drop the HDI rank column. it was redundant.
+df_HDI.drop("HDI rank",inplace=True,axis=1)
+
 # describe the dataset to have an insight of it.
 print(f"Describe df_HDI:\n{df_HDI.describe()}\n","-"*30)
 with open(df_hdi_txt,"a") as file:
