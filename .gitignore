@@ -10,3 +10,5 @@
 temp*.py
 # ignore token
 .token
+# ignore output directory
+output/
