@@ -6,8 +6,6 @@ import os
 from pathlib import Path
 
 # a function for deleting every .txt file in the root directory and its sub-directories
-
-
 def delete_txt_file(directory):
     path = Path(directory)
     for txt_file in path.rglob("*.txt"):
@@ -28,8 +26,6 @@ def cast_number(item):
             return item
 
 # function for detecting outliers using IQR method
-
-
 def detect_outliers_iqr(df, column):
     Q1 = df[column].quantile(0.25)
     Q3 = df[column].quantile(0.75)
@@ -62,6 +58,12 @@ df_hdi_txt = os.path.join(save_txt_hdi, "output.txt")
 # delete the .txt files before starting. it makes sure that every .txt file is being created from scratch
 delete_txt_file(root_dir)
 
+# let's create a folder for saving figures and charts
+save_figures_hdi=os.path.join(root_dir,"figures/hdi")
+os.makedirs(save_figures_hdi,exist_ok=True)
+print(f"save hdi figures at: {save_figures_hdi}")
+
+
 # check the path of the dataset
 print(f"path of the dataset:\n{os.getenv('data_path')}", "\n", "-"*30)
 
@@ -87,22 +89,22 @@ df_HDI[["HDI", "Expected years of schooling", "Mean years of schooling", "Gross 
 # drop the HDI rank column. it was redundant.
 df_HDI.drop("HDI rank", inplace=True, axis=1)
 
-# # describe the dataset to have an insight of it.
-# print(f"Describe df_HDI:\n{df_HDI.describe()}\n","-"*30)
-# with open(df_hdi_txt,"a") as file:
-#     file.write("Describe the df_HDI dataframe:\n")
-#     file.write(df_HDI.describe().to_string())
-#     file.write("\n"+"-"*30+"\n")
-#     print(f"df_HDI describe is written to the file {df_hdi_txt}\n","-"*30)
+# describe the dataset to have an insight of it.
+print(f"Describe df_HDI:\n{df_HDI.describe()}\n","-"*30)
+with open(df_hdi_txt,"a") as file:
+    file.write("Describe the df_HDI dataframe:\n")
+    file.write(df_HDI.describe().to_string())
+    file.write("\n"+"-"*30+"\n")
+    print(f"df_HDI describe is written to the file {df_hdi_txt}\n","-"*30)
 
-# # check the dtypes of the dataframe.
-# print(f"dtypes of df_HDI:\n{df_HDI.dtypes}\n","-"*30)
+# check the dtypes of the dataframe.
+print(f"dtypes of df_HDI:\n{df_HDI.dtypes}\n","-"*30)
 
-# with open(df_hdi_txt,"a") as file:
-#     file.write("dtypes of df_HDI:\n")
-#     file.write(df_HDI.dtypes.to_string())
-#     file.write("\n"+"-"*30+"\n")
-#     print(f"dtypes of df_HDI is written at {df_hdi_txt}.\n","-"*30)
+with open(df_hdi_txt,"a") as file:
+    file.write("dtypes of df_HDI:\n")
+    file.write(df_HDI.dtypes.to_string())
+    file.write("\n"+"-"*30+"\n")
+    print(f"dtypes of df_HDI is written at {df_hdi_txt}.\n","-"*30)
 
 # check fr missing values
 print(f"check for number of null values: {df_HDI.isnull().sum()}\n", "-"*30)
@@ -154,3 +156,19 @@ with open(df_hdi_txt, "a") as file:
         file.write("\n" + "-" * 30 + "\n")
     print(
         f"columns with outliers of df_HDI_clean is written at {df_hdi_txt}.\n", "-"*30)
+
+# TODO: remove outliers for statsitcal and ML purposes only.
+
+
+# let's do dome EDA
+# plot the distirbution of columns
+for column in numeric_columns:
+    if column=="HDI_rank":
+        continue
+    plt.figure(figsize=(8,6))
+    sns.histplot(df_HDI_clean[column],kde=True)
+    plt.title(f"Distribution of {column}")
+    figures_save_file=os.path.join(save_figures_hdi,f"Disribution of {column}.jpg")
+    plt.savefig(figures_save_file,format="jpg")
+    plt.close()
+    print(f"Distribution figure of {column} column is saved at:{figures_save_file}"+"\n"+"-"*30,"\n")
