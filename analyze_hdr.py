@@ -172,3 +172,16 @@ for column in numeric_columns:
     plt.savefig(figures_save_file,format="jpg")
     plt.close()
     print(f"Distribution figure of {column} column is saved at:{figures_save_file}"+"\n"+"-"*30,"\n")
+
+# let's check for outliers using boxplots
+for column in numeric_columns:
+    if column=="HDI_rank":
+        continue
+    plt.figure(figsize=(8,6))
+    sns.boxplot(x=df_HDI_clean[column])
+    plt.title(f"Boxplot of {column}")
+    figures_save_file=os.path.join(save_figures_hdi,f"Boxplot of {column}.jpg")
+    plt.savefig(figures_save_file,format="jpg")
+    plt.close()
+    print(f"Outliers of {column} column is saved at:{figures_save_file}"+"\n"+"-"*30,"\n")
+    
