@@ -25,7 +25,7 @@ if fl is not None:
     st.write("Data Frame is created.")
 
 # create 2 columns for the app
-col1,col2=st.columns((2))
+col1,col2=st.columns(2)
 
 
 # let's filter and remove the columns that their names contain "unnamed".
@@ -57,3 +57,11 @@ with col1:
     st.subheader(f"{selected_column_x} vs. {selected_column_y}")
     fig=px.histogram(df_hdi_clean,x=selected_column_x,y=selected_column_y,template="seaborn",histfunc="avg")
     st.plotly_chart(fig,use_container_width=True)
+
+# create a piechart
+with col2:
+    top_10_countries=df_hdi_clean.head(10)
+    selected_column=st.selectbox("Choose a column:",options=numeric_columns)
+    fig=px.pie(top_10_countries,names="Country",values=selected_column,height=550,hover_data=selected_column,title=f"Country vs. {selected_column}",hole=0.3)
+    fig.update_traces(textinfo="label+value")
+    st.plotly_chart(fig)
