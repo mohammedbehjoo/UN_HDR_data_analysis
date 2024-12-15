@@ -27,6 +27,18 @@ def cast_number(item):
         except (TypeError, ValueError):
             return item
 
+# function for detecting outliers using IQR method
+
+
+def detect_outliers_iqr(df, column):
+    Q1 = df[column].quantile(0.25)
+    Q3 = df[column].quantile(0.75)
+    IQR = Q3-Q1
+    lower_bound = Q1-1.5*IQR
+    upper_bound = Q3+1.5*IQR
+    outliers = df[(df[column] < lower_bound) | (df[column] > upper_bound)]
+    return outliers
+
 
 # check if the config file exits
 try:
@@ -93,7 +105,7 @@ df_HDI.drop("HDI rank", inplace=True, axis=1)
 #     print(f"dtypes of df_HDI is written at {df_hdi_txt}.\n","-"*30)
 
 # check fr missing values
-print(f"check for number of null values: {df_HDI.isnull().sum()}\n","-"*30)
+print(f"check for number of null values: {df_HDI.isnull().sum()}\n", "-"*30)
 
 # write the number of null values to the output txt file.
 with open(df_hdi_txt, "a") as file:
@@ -102,19 +114,43 @@ with open(df_hdi_txt, "a") as file:
     file.write("\n"+"-"*30+"\n")
     print(
         f"number of null values of df_HDI is written at {df_hdi_txt}.\n", "-"*30)
-    
+
 # check the rows with missing values
-missing_rows=df_HDI[df_HDI.isna().any(axis=1)]
-print(f"missing rows of df_HDI:\n{missing_rows}\n","-"*30)
+missing_rows = df_HDI[df_HDI.isna().any(axis=1)]
+print(f"missing rows of df_HDI:\n{missing_rows}\n", "-"*30)
 
 # write the rows with missing values to the output file
-with open(df_hdi_txt,"a") as file:
+with open(df_hdi_txt, "a") as file:
     file.write("rows with missing values:\n")
     file.write(missing_rows.to_string())
     file.write("\n"+"-"*30+"\n")
     print(
         f"rows with missing values of df_HDI is written at {df_hdi_txt}.\n", "-"*30)
-    
-# get rid rows with missing values
-df_HDI_clean=df_HDI.dropna()
 
+# get rid rows with missing values
+df_HDI_clean = df_HDI.dropna()
+
+# detecting outliers
+# first, select only the numeric columns
+numeric_columns = df_HDI_clean.select_dtypes(include="float64").columns
+for column in numeric_columns:
+    outliers = detect_outliers_iqr(df_HDI_clean, column)
+    # only print the columns iwth outliers
+    if len(outliers) == 0:
+        continue
+    print(f"Outliers in {column}: {len(outliers)}\n")
+    print(outliers, "\n", "-"*30)
+
+# write the columns with outliers to the output .txt file
+with open(df_hdi_txt, "a") as file:
+    file.write("Outlier of df_HDI_clean dataframe:\n")
+    for column in numeric_columns:
+        outliers = detect_outliers_iqr(df_HDI_clean, column)
+        # only print the columns iwth outliers
+        if len(outliers) == 0:
+            continue
+        file.write(f"Outliers in {column}: {len(outliers)}\n")
+        file.write(outliers.to_string())
+        file.write("\n" + "-" * 30 + "\n")
+    print(
+        f"columns with outliers of df_HDI_clean is written at {df_hdi_txt}.\n", "-"*30)
