@@ -200,3 +200,15 @@ figures_save_file=os.path.join(save_figures_hdi,f"Pairplot of df_HDI_clean.jpg")
 plt.savefig(figures_save_file,format="jpg")
 plt.close()
 print(f"Pairplot of df_HDI_clean is saved at:{figures_save_file}"+"\n"+"-"*30,"\n")
+
+# plot the HDI of top 10 countries
+top_countries=df_HDI_clean[["Country","HDI"]].head(10)
+plt.figure(figsize=(12,10))
+sns.scatterplot(x="Country",y="HDI",data=top_countries)
+plt.title("Top 10 countries by HDI")
+plt.xticks(rotation=45)
+figures_save_file=os.path.join(save_figures_hdi,f"Top 10 countries by HDI.jpg")
+plt.savefig(figures_save_file,format="jpg")
+plt.close()
+print(f"Top 10 countries by HDI is saved at:{figures_save_file}"+"\n"+"-"*30,"\n")
+
