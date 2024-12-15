@@ -185,3 +185,13 @@ for column in numeric_columns:
     plt.close()
     print(f"Outliers of {column} column is saved at:{figures_save_file}"+"\n"+"-"*30,"\n")
     
+
+# check the correlation between numeric variables
+correlation_matrix=df_HDI_clean[numeric_columns].corr()
+sns.heatmap(correlation_matrix,annot=True,cmap="Pastel2_r",linewidths="0.5",linecolor="gray")
+figures_save_file=os.path.join(save_figures_hdi,f"Correlation matrix of df_HDI_clean.jpg")
+plt.savefig(figures_save_file,format="jpg")
+plt.close()
+print(f"Correlation matrix of df_HDI_clean is saved at:{figures_save_file}"+"\n"+"-"*30,"\n")
+
+# 
