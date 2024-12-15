@@ -194,4 +194,9 @@ plt.savefig(figures_save_file,format="jpg")
 plt.close()
 print(f"Correlation matrix of df_HDI_clean is saved at:{figures_save_file}"+"\n"+"-"*30,"\n")
 
-# 
+# pairplot
+sns.pairplot(df_HDI_clean[numeric_columns],corner=True)
+figures_save_file=os.path.join(save_figures_hdi,f"Pairplot of df_HDI_clean.jpg")
+plt.savefig(figures_save_file,format="jpg")
+plt.close()
+print(f"Pairplot of df_HDI_clean is saved at:{figures_save_file}"+"\n"+"-"*30,"\n")
