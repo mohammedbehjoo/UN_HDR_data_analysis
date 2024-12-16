@@ -72,4 +72,34 @@ with col2:
     # modify to show the exact values on the pie chart
     fig.update_traces(textinfo="label+value")
     st.plotly_chart(fig)
-    
+
+# let's creat two columns layout again
+col1,col2=st.columns(2)
+
+with col1:
+    selected_column=st.selectbox("Choose a column:",options=numeric_columns,key="global heatmap")
+    if selected_column=="HDI_rank":
+        pass
+    # global HDI heatmap
+    st.title(f"Global {selected_column} Heatmap")
+    st.markdown(f"This heatmap visualizes the distribution of {selected_column} across countries.")
+
+    # choropleth map
+    fig=px.choropleth(df_hdi_clean,
+                    locations="Country",
+                    locationmode="country names",
+                    color=selected_column,
+                    hover_name="Country",
+                    color_continuous_scale=px.colors.sequential.Purples,
+                    title=f"{selected_column}")
+
+    # customize layout
+    fig.update_layout(
+        geo=dict(
+            showframe=False,
+            showcoastlines=True,
+            projection_type="natural earth"
+        )
+    )
+
+    st.plotly_chart(fig)
