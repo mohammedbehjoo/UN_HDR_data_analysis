@@ -121,3 +121,37 @@ with col2_row2:
     )
     st.plotly_chart(fig)
     
+st.title("Bar chart of HDI rankings")
+st.markdown("Explore top or bottom 10 countries based on HDI rank")
+
+toggle=st.radio("View:",["Top 10","Bottom 10"],horizontal=True)
+
+if toggle=="Top 10":
+    filtered_df=df_hdi_clean.nsmallest(10,"HDI_rank")
+    title="Top 10 countries by HDI rank"
+else:
+    filtered_df=df_hdi_clean.nlargest(10,"HDI_rank")
+    title="Bottom 10 countries by HDI rank"
+
+# create bar chart
+fig=px.bar(filtered_df,
+           x="Country",
+           y="HDI",
+           text="HDI_rank",
+           title=title,
+           labels={"HDI":"Human Development Index","Country":"Country"},
+           color="HDI",
+           color_continuous_scale="Viridis")
+
+fig.update_traces(
+    texttemplate="Rank: %{text}",textposition="outside"
+)
+
+fig.update_layout(
+    xaxis_title="Country",
+    yaxis_title="HDI",
+    coloraxis_showscale=False,
+    margin=dict(l=40,r=40,t=60,b=40)
+)
+
+st.plotly_chart(fig)
