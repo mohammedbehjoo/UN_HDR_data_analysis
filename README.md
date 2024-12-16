@@ -8,6 +8,7 @@ This project involves explaratory data analysis (EDA) and statistical analysis o
 3. [Requirements](#requirements)
 4. [Usage](#usage)
 5. [Features](#features)
+6. [Usage](#usage)
 6. [Contributing](#contributing)
 7. [License](#license)
 
@@ -56,6 +57,13 @@ python analyze_hdr.py
 - Preprocessing and cleaning of the HDR dataset.
 - Statistical analysis of key indicators.
 - Visualizations to showcase trends and relationships in the data.
+
+# Usage
+In order to make the dashboard run the following command in the terminal:
+
+`streamlit run ./dashboard.py --server.port 8888`
+
+It will use the `8888` port for the connection in your local host.
 
 ## Contributing
 
