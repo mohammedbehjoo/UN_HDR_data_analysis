@@ -3,8 +3,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.express as px
 import os
+import io
 import warnings
 
+# loading data and cache it.
+@st.cache_data
+def load_data(file_name):
+    return pd.read_excel(file_name)
+    
 warnings.filterwarnings("ignore")
 
 st.set_page_config(page_title="HDR",
@@ -19,9 +25,9 @@ st.markdown(
 fl=st.file_uploader(":file_folder: Upload a file",type=(["xlsx"]))
 
 if fl is not None:
-    filename=fl.name
+    file_name=fl.name
     # create the dataframe
-    df_hdi=pd.read_excel(filename)
+    df_hdi=load_data(file_name)
     st.write("Data Frame is created.")
 
 # create 2 columns for the app
@@ -62,6 +68,8 @@ with col1:
 with col2:
     top_10_countries=df_hdi_clean.head(10)
     selected_column=st.selectbox("Choose a column:",options=numeric_columns)
-    fig=px.pie(top_10_countries,names="Country",values=selected_column,height=550,hover_data=selected_column,title=f"Country vs. {selected_column}",hole=0.3)
+    fig=px.pie(top_10_countries,names="Country",values=selected_column,height=550,hover_data=selected_column,title=f"Top 10 countries vs. {selected_column}",hole=0.3)
+    # modify to show the exact values on the pie chart
     fig.update_traces(textinfo="label+value")
     st.plotly_chart(fig)
+    
