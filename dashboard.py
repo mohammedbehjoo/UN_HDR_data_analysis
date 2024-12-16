@@ -74,9 +74,9 @@ with col2:
     st.plotly_chart(fig)
 
 # let's creat two columns layout again
-col1,col2=st.columns(2)
+col1_row2,col2_row2=st.columns(2)
 
-with col1:
+with col1_row2:
     selected_column=st.selectbox("Choose a column:",options=numeric_columns,key="global heatmap")
     if selected_column=="HDI_rank":
         pass
@@ -103,3 +103,21 @@ with col1:
     )
 
     st.plotly_chart(fig)
+    
+with col2_row2:
+    selected_column_x=st.selectbox("Choose a column:",options=numeric_columns,key="col2_row2_x")
+    selected_column_y=st.selectbox("Choose a column:",options=numeric_columns,key="col2_row2_y")
+    
+    st.title(f"Scatter plot of {selected_column_x} vs. {selected_column_y}")
+    st.markdown(f"This scatter plot visualizes the relationship between {selected_column_x} and {selected_column_y}")
+    
+    fig=px.scatter(
+        df_hdi_clean,
+        x=selected_column_x,
+        y=selected_column_y,
+        size=selected_column_x,
+        hover_data="HDI",
+        color=selected_column_x
+    )
+    st.plotly_chart(fig)
+    
