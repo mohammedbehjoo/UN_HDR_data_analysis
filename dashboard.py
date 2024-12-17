@@ -5,11 +5,21 @@ import plotly.express as px
 import plotly.graph_objects as go
 import os
 import io
+from dotenv import load_dotenv
 import warnings
 
+
+load_dotenv("config.env")
+
+# read the pop_gnipc excel file
+filepath_pop_gni = os.path.join(os.getenv("data_path"), "pop_gnipc.xlsx")
+pop_gnipc_df = pd.read_excel(filepath_pop_gni)
+
+# multiply the poplulation column by one million.
+pop_gnipc_df["Population"] = pop_gnipc_df["Population"] * 1000000
+
+
 # loading data and cache it.
-
-
 @st.cache_data
 def load_data(file_name):
     return pd.read_excel(file_name)
@@ -23,10 +33,11 @@ st.set_page_config(page_title="HDR",
 st.title("📌 Human Development Reports (HDR)")
 
 st.markdown(
-    "<style>div.cclock-container{padding-top:1rem;}</style>", unsafe_allow_html=True)
+    "<style>div.clock-container{padding-top:1rem;}</style>", unsafe_allow_html=True)
 
 # read the file from streamlit app
 fl = st.file_uploader(":file_folder: Upload a file", type=(["xlsx"]))
+
 
 if fl is not None:
     file_name = fl.name
@@ -209,10 +220,30 @@ if selected_column:
             b=50
         )
     )
-    
+
     # Display the plot in Streamlit
     st.plotly_chart(fig, use_container_width=True)
-    
-    
+
+
 else:
     st.warning("Please select at least one dimension to create the plot.")
+
+
+# let's merge the two dataframes to have GNI per capita and population of each country.
+df_merged = df_hdi_clean.merge(pop_gnipc_df, on="Country", how="left")
+df_merged = df_merged.reset_index(drop=True)
+st.write(df_merged.head())
+st.write(df_merged.isnull().sum())
+# let's create a treemap
+st.title("Tree map of GNI per capita")
+st.markdown("This treemap represents the proportional income levels of countries, with box sizes indicating populationand colors representing GNI per capita")
+fig = px.treemap(
+    df_merged,
+    path=["Country"],  # hierarchy (only Country here)
+    values="Population",  # Box size
+    color="GNIPC",  # color based on GNI per capita
+    labels={"GNIPC": "GNI per capita (USD)"},
+    title="GNI per capita treemap"
+)
+st.plotly_chart(fig)
+
