@@ -1,4 +1,5 @@
 import streamlit as st
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.express as px
@@ -221,6 +222,7 @@ st.plotly_chart(fig)
 col1,col2= st.columns(2)
 
 with col1:
+    st.title("Correlation matrix heatmap")
     # correlation matrix heatmap
     # let's calculate the correlation matrix
     # first we have to get the numeric columns
@@ -249,7 +251,7 @@ with col1:
 
     # Add title and layout adjustments
     fig.update_layout(
-        title="Correlation Matrix Heatmap",
+        
         xaxis_title="Indicators",
         yaxis_title="Indicators",
         width=800,
