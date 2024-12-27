@@ -51,6 +51,13 @@ cd HDR_data_analysis
 ```bash
 python analyze_hdr.py
 ```
+---
+In order to make the dashboard run the following command in the terminal:
+
+`streamlit run ./dashboard_intro.py --server.port 8888`
+
+It will use the `8888` port for the connection in your local host.
+
 
 ## Features
 
@@ -58,12 +65,6 @@ python analyze_hdr.py
 - Statistical analysis of key indicators.
 - Visualizations to showcase trends and relationships in the data.
 
-# Usage
-In order to make the dashboard run the following command in the terminal:
-
-`streamlit run ./dashboard.py --server.port 8888`
-
-It will use the `8888` port for the connection in your local host.
 
 ## Contributing
 
