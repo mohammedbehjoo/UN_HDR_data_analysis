@@ -12,3 +12,6 @@ temp*.py
 .token
 # ignore output directory
 output/
+# ignore image files
+*.png
+*.jpg
