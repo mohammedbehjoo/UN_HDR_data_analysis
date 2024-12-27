@@ -232,8 +232,12 @@ else:
 # let's merge the two dataframes to have GNI per capita and population of each country.
 df_merged = df_hdi_clean.merge(pop_gnipc_df, on="Country", how="left")
 df_merged = df_merged.reset_index(drop=True)
-st.write(df_merged.head())
-st.write(df_merged.isnull().sum())
+
+# top 10 countries dataframe
+st.title("Top 10 countries")
+st.markdown("Top 10 countries by HDI")
+st.write(df_merged.head(10))
+
 # let's create a treemap
 st.title("Tree map of GNI per capita")
 st.markdown("This treemap represents the proportional income levels of countries, with box sizes indicating populationand colors representing GNI per capita")
@@ -247,3 +251,40 @@ fig = px.treemap(
 )
 st.plotly_chart(fig)
 
+
+
+# correlation matrix heatmap
+# let's calculate the correlation matrix
+# first we have to get the numeric columns
+numeric_df=df_hdi_clean.select_dtypes(include=["float64"])
+
+correlation_matrix=numeric_df.corr()
+
+# melt the correlation matrix to long format
+correlation_melted=correlation_matrix.reset_index().melt(id_vars="index")
+correlation_melted.columns=["Variable 1","Variable 2","Correlation"]
+
+fig = px.imshow(
+    correlation_matrix,
+    labels={"color": "Correlation Coefficient"},
+    x=correlation_matrix.columns,
+    y=correlation_matrix.index,
+    color_continuous_scale="RdBu_r",
+    zmin=-1,
+    zmax=1,
+)
+
+# Add interactivity to hover
+fig.update_traces(
+    hovertemplate="Correlation between %{x} and %{y}: %{z:.2f}<extra></extra>"
+)
+
+# Add title and layout adjustments
+fig.update_layout(
+    title="Correlation Matrix Heatmap",
+    xaxis_title="Indicators",
+    yaxis_title="Indicators",
+    width=800,
+    height=600,
+)
+st.plotly_chart(fig)
