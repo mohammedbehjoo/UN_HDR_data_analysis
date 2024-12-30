@@ -4,11 +4,22 @@ import plotly.express as px
 import os
 import numpy as np
 
-# TODO: lazy load data. cache it
 
+st.set_page_config(page_title="Trends",
+                   page_icon="📑")
 
+# TODO: lazy load data. cache teh data
 @st.cache_data
-def load_df(filename: str, sheet: str):
+def load_df(filename: str, sheet: str) -> pd.DataFrame:
+    """Load data from an excel file.
+
+    Args:
+        filename (str): name of the excel file to be read
+        sheet (str): name of the sheet of the excel file
+
+    Returns:
+        pd.DataFrame: a pandas df is created. streamlit caches the data.
+    """
     return pd.read_excel(filename, sheet_name=sheet)
 
 
@@ -98,3 +109,5 @@ fig.update_layout(legend_title="Countries",
                   height=700)
 
 st.plotly_chart(fig, use_container_width=True)
+
+
