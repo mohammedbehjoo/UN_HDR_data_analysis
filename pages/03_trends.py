@@ -36,3 +36,33 @@ df_unclean.rename(columns={"1990": "hdi_1990", "2000": "hdi_2000", "2010": "hdi_
                            "2000-2010": "avg hdi growth (%) 2000-2010",
                            "2010-2022": "avg hdi growth (%) 2010-2022",
                            "1990-2022": "avg hdi growth (%) 1990-2022"}, inplace=True)
+
+
+# now let's create a visual for trends
+# reshape data from wide to long format
+df_long=pd.melt(
+    df_unclean,
+    id_vars=["country"],
+    value_vars=["hdi_1990", "hdi_2000", "hdi_2010", "hdi_2015", "hdi_2019", "hdi_2020", "hdi_2021", "hdi_2022"],
+    var_name="year",
+    value_name="hdi"
+)
+
+# clean your name column
+df_long["year"]=df_long["year"].str.extract(r"(\d{4})").astype(int)
+
+# create the plotly line chart
+fig=px.line(
+    df_long,
+    x="year",
+    y="hdi",
+    color="country",
+    title="HDI Trends Over Time",
+    labels={"hdi":"HDI","year":"Year","country":"Country"}
+)
+
+# add interactivity
+fig.update_traces(mode="lines+markers")
+fig.update_layout(legend_title="Countries")
+
+st.plotly_chart(fig)
