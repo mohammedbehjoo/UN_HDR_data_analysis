@@ -12,7 +12,7 @@ st.set_page_config(page_title="Trends",
 
 
 @st.cache_data
-def load_df(filename: str, sheet: str) -> pd.DataFrame:
+def load_data(filename: str, sheet: str) -> pd.DataFrame:
     """Load data from an excel file.
 
     Args:
@@ -25,7 +25,7 @@ def load_df(filename: str, sheet: str) -> pd.DataFrame:
     return pd.read_excel(filename, sheet_name=sheet)
 
 
-def preprocess_data(df: pd.dataFrame) -> pd.DataFrame:
+def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
     """clean and preprocess the hdi trends data.
 
     Args:
@@ -54,6 +54,7 @@ def preprocess_data(df: pd.dataFrame) -> pd.DataFrame:
 
     # rename columns for clarity
     rename_dict = {
+        "hdi_rank": "rank based on hdi",
         "1990": "hdi_1990", "2000": "hdi_2000", "2010": "hdi_2010", "2015": "hdi_2015",
         "2019": "hdi_2019",
         "2020": "hdi_2020", "2021": "hdi_2021", "2022": "hdi_2022",
@@ -87,16 +88,23 @@ def transform_to_long_format(df: pd.DataFrame) -> pd.DataFrame:
         var_name="year",
         value_name="hdi"
     )
+
     long_df["year"] = long_df["year"].str.extract(r"(\d{4})").astype(int)
 
     return long_df
 
 
 def plot_hdi_trends(data: pd.DataFrame, countries: list) -> None:
+    """Generate and display the hdi trends chart
+
+    Args:
+        data (pd.DataFrame): the initial data
+        countries (list): list of countries to be shown
+    """
 
     # filter data based on selected countries
     filtered_data = data[data["country"].isin(countries)]
-    
+
     # create the plotly line chart
     fig = px.line(
         filtered_data,
@@ -106,7 +114,7 @@ def plot_hdi_trends(data: pd.DataFrame, countries: list) -> None:
         title="HDI Trends Over Time",
         labels={"hdi": "HDI", "year": "Year", "country": "Country"}
     )
-    
+
     # update traces to make all lines dashed
     fig.for_each_trace(lambda trace: trace.update(
         line=dict(dash="dash", width=1), opacity=0.5))
@@ -114,49 +122,36 @@ def plot_hdi_trends(data: pd.DataFrame, countries: list) -> None:
     # add interactivity
     fig.update_traces(mode="lines+markers")
     fig.update_layout(legend_title="Countries",
-                    width=2000,
-                    height=700)
+                      width=2000,
+                      height=700)
 
     st.plotly_chart(fig, use_container_width=True)
-    
+
+
 # main workflow
+if __name__ == "__main__":
+    # load and preprocess the data
+    data_file = "HDR23-24_Statistical_Annex_Tables_1-7.xlsx"
+    sheet_name = "HDI trends"
+    raw_data = load_data(data_file, sheet_name)
+    clean_data = preprocess_data(raw_data)
+    # st.write(clean_data)
+    long_data = transform_to_long_format(clean_data)
 
+    # get the top 5 countries for default option of the visualization
+    default_countries = clean_data.sort_values(
+        "rank based on hdi")["country"].head(5).tolist()
 
- 
-    # get the top 10 countries for default option
-top_5_countries = df_unclean.sort_values(
-    "hdi_rank")["country"].head(5).tolist()
+    # streamlit app's title
+    st.title("HDI trends visualization")
 
-# streamlit app's title
-st.title("HDI trends visualization")
+    # multi-select widget for countries
+    st.info("Default is top 5 countries 🗺️")
 
-# multi-select widget for countries
-st.info("Default is top 5 countries 🗺️")
-selected_countries = st.multiselect("Select countries to display:",
-                                    options=df_long["country"].unique(),
-                                    default=top_5_countries)
+    selected_countries = st.multiselect(
+        "Select countries to display:",
+        options=long_data["country"].unique(),
+        default=default_countries)
 
-# filter data based on selected countries
-filtered_df = df_long[df_long["country"].isin(selected_countries)]
-
-# create the plotly line chart
-fig = px.line(
-    filtered_df,
-    x="year",
-    y="hdi",
-    color="country",
-    title="HDI Trends Over Time",
-    labels={"hdi": "HDI", "year": "Year", "country": "Country"}
-)
-
-# update traces to make all lines dashed
-fig.for_each_trace(lambda trace: trace.update(
-    line=dict(dash="dash", width=1), opacity=0.5))
-
-# add interactivity
-fig.update_traces(mode="lines+markers")
-fig.update_layout(legend_title="Countries",
-                  width=2000,
-                  height=700)
-
-st.plotly_chart(fig, use_container_width=True)
+    # generate and plot the visual
+    plot_hdi_trends(long_data, selected_countries)
