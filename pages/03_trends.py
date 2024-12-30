@@ -4,6 +4,8 @@ import plotly.express as px
 import os
 import numpy as np
 
+# TODO: lazy load data. cache it
+
 # read the excel file's "HDI trends sheet".
 df_unclean = pd.read_excel(
     "HDR23-24_Statistical_Annex_Tables_1-7.xlsx", sheet_name="HDI trends")
@@ -39,30 +41,54 @@ df_unclean.rename(columns={"1990": "hdi_1990", "2000": "hdi_2000", "2010": "hdi_
 
 
 # now let's create a visual for trends
+
 # reshape data from wide to long format
-df_long=pd.melt(
+df_long = pd.melt(
     df_unclean,
     id_vars=["country"],
-    value_vars=["hdi_1990", "hdi_2000", "hdi_2010", "hdi_2015", "hdi_2019", "hdi_2020", "hdi_2021", "hdi_2022"],
+    value_vars=["hdi_1990", "hdi_2000", "hdi_2010", "hdi_2015",
+                "hdi_2019", "hdi_2020", "hdi_2021", "hdi_2022"],
     var_name="year",
     value_name="hdi"
 )
 
 # clean your name column
-df_long["year"]=df_long["year"].str.extract(r"(\d{4})").astype(int)
+df_long["year"] = df_long["year"].str.extract(r"(\d{4})").astype(int)
+
+# get the top 10 countries for default option
+top_5_countries = df_unclean.sort_values(
+    "hdi_rank")["country"].head(5).tolist()
+
+# streamlit app's title
+st.title("HDI trends visualization")
+
+# multi-select widget for countries
+st.info("Default is top 5 countries 🗺️")
+selected_countries = st.multiselect("Select countries to display:",
+                                    options=df_long["country"].unique(),
+                                    default=top_5_countries)
+
+# filter data based on selected countries
+filtered_df = df_long[df_long["country"].isin(selected_countries)]
 
 # create the plotly line chart
-fig=px.line(
-    df_long,
+fig = px.line(
+    filtered_df,
     x="year",
     y="hdi",
     color="country",
     title="HDI Trends Over Time",
-    labels={"hdi":"HDI","year":"Year","country":"Country"}
+    labels={"hdi": "HDI", "year": "Year", "country": "Country"}
 )
+
+# update traces to make all lines dashed
+fig.for_each_trace(lambda trace: trace.update(
+    line=dict(dash="dash", width=1), opacity=0.5))
 
 # add interactivity
 fig.update_traces(mode="lines+markers")
-fig.update_layout(legend_title="Countries")
+fig.update_layout(legend_title="Countries",
+                  width=2000,
+                  height=700)
 
-st.plotly_chart(fig)
+st.plotly_chart(fig, use_container_width=True)
