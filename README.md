@@ -73,4 +73,4 @@ Contributions are welcome! Feel free to submit a pull request or raise an issue 
 
 ## License
 
-This project is licensed under the GNU V3 License. See the LICENSE file for details.
+This project is licensed under the GNU V3 License. See the [LICENSE](LICENSE) file for details.
