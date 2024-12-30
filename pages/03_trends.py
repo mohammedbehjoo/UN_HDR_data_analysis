@@ -6,9 +6,15 @@ import numpy as np
 
 # TODO: lazy load data. cache it
 
+
+@st.cache_data
+def load_df(filename: str, sheet: str):
+    return pd.read_excel(filename, sheet_name=sheet)
+
+
 # read the excel file's "HDI trends sheet".
-df_unclean = pd.read_excel(
-    "HDR23-24_Statistical_Annex_Tables_1-7.xlsx", sheet_name="HDI trends")
+df_unclean = load_df(
+    "HDR23-24_Statistical_Annex_Tables_1-7.xlsx", "HDI trends")
 
 # make the columns type as str for processing.
 df_unclean.columns = df_unclean.columns.astype(str)
