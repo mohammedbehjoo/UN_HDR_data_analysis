@@ -56,9 +56,25 @@ def preprocess_data(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Index]:
     return df, numeric_columns
 
 
-def plot_histogram(df: pd.DataFrame, x_column, y_column, histfunc: str = "avg") -> None:
+def histogram_plot(df: pd.DataFrame, x_column, y_column, histfunc: str = "avg") -> None:
     fig = px.histogram(df, x=x_column,
                        y=y_column, template="seaborn", histfunc="avg")
+    st.plotly_chart(fig)
+
+
+def pie_plot(df: pd.DataFrame, names, selected_column) -> None:
+    fig = px.pie(
+        df.head(10),
+        names=names,
+        values=selected_column,
+        height=600,
+        hover_data=selected_column,
+        title=f"Top 10 countries vs. {selected_column}", hole=0.3
+    )
+
+    # modify to show the exact values on the pie chart
+    fig.update_traces(textinfo="label+value")
+
     st.plotly_chart(fig)
 
 
@@ -92,4 +108,9 @@ if __name__ == "__main__":
                 "Choose a column for y axis:", options=numeric_columns, key="y"
             )
             st.subheader(f"{x_column} vs. {y_column}")
-            plot_histogram(clean_data, x_column, y_column)
+            histogram_plot(clean_data, x_column, y_column)
+
+        with col2:
+            selected_column = st.selectbox(
+                "Choose a column:", options=numeric_columns)
+            pie_plot(clean_data, "Country", selected_column)
