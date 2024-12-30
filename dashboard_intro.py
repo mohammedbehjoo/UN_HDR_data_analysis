@@ -74,6 +74,9 @@ st.markdown("""
             - 📈 **Statistical Analysis Page:**
                 - Explore statistical relationships between variables (e.g., HDI vs. GNI per capita).
                 - Analyze correlations and regression models.
+            - 📑 **Trends Page:**
+                - Discover historical and emerging trends in the dataset.
+                - Compare data across multiple years or regions.
             """)
 st.info("Start exploring by selecting a page from the sidebar! 📂")
 
