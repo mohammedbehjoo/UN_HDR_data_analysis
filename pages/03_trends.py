@@ -9,6 +9,8 @@ st.set_page_config(page_title="Trends",
                    page_icon="📑")
 
 # TODO: lazy load data. cache teh data
+
+
 @st.cache_data
 def load_df(filename: str, sheet: str) -> pd.DataFrame:
     """Load data from an excel file.
@@ -23,28 +25,64 @@ def load_df(filename: str, sheet: str) -> pd.DataFrame:
     return pd.read_excel(filename, sheet_name=sheet)
 
 
-# read the excel file's "HDI trends sheet".
-df_unclean = load_df(
-    "HDR23-24_Statistical_Annex_Tables_1-7.xlsx", "HDI trends")
+def preprocess_data(df: pd.dataFrame) -> pd.DataFrame:
 
-# make the columns type as str for processing.
-df_unclean.columns = df_unclean.columns.astype(str)
+    # standardize column names snd types
+    df.columns = df.columns.astype(str)
+    # remove the columns containing "Unnamed" in their names
+    df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
+    # there is a column named "a". drop it
+    df.drop(["a"], inplace=True, axis=1)
+    # standardize column names
+    df.columns = (df.columns.str.strip()
+                  .str.lower()
+                  .str.replace(' ', '_'))
 
-# now let's remove the columns containing "Unnamed" in their names
-df_unclean = df_unclean.loc[:, ~df_unclean.columns.str.contains("^Unnamed")]
+    # handle numeric columns
+    numeric_columns = df.columns[2:]
+    # replace ".." with Numpy's NaN
+    df[numeric_columns] = df[numeric_columns].replace("..", np.nan).astype(float)
 
-# there is a column named "a". drop it
-df_unclean.drop(["a"], inplace=True, axis=1)
+    # rename columns for clarity
+    rename_dict = {
+        "1990": "hdi_1990", "2000": "hdi_2000", "2010": "hdi_2010", "2015": "hdi_2015",
+        "2019": "hdi_2019",
+        "2020": "hdi_2020", "2021": "hdi_2021", "2022": "hdi_2022",
+        "2015-2022": "change in hdi rank 2015-2022",
+        "1990-2000": "avg hdi growth (%) 1990-2000",
+        "2000-2010": "avg hdi growth (%) 2000-2010",
+        "2010-2022": "avg hdi growth (%) 2010-2022",
+        "1990-2022": "avg hdi growth (%) 1990-2022"
+    }
+    
+    # rename columns
+    df.rename(columns=rename_dict,inplace=True)
+    
+    return df
 
-# standardize column names
-df_unclean.columns = df_unclean.columns.str.strip().str.lower().str.replace(' ', '_')
 
-# get the numeric columns
-numeric_columns = df_unclean.columns[2:]
+# # read the excel file's "HDI trends sheet".
+# df_unclean = load_df(
+#     "HDR23-24_Statistical_Annex_Tables_1-7.xlsx", "HDI trends")
 
-# replace ".." with Numpy's NaN
-df_unclean[numeric_columns] = df_unclean[numeric_columns].replace(
-    "..", np.nan).astype("float")
+# # make the columns type as str for processing.
+# df_unclean.columns = df_unclean.columns.astype(str)
+
+# # remove the columns containing "Unnamed" in their names
+# df_unclean = df_unclean.loc[:, ~df_unclean.columns.str.contains("^Unnamed")]
+
+# # there is a column named "a". drop it
+# df_unclean.drop(["a"], inplace=True, axis=1)
+
+# # standardize column names
+# df_unclean.columns = df_unclean.columns.str.strip().str.lower().str.replace(' ', '_')
+
+# # get the numeric columns
+# numeric_columns = df_unclean.columns[2:]
+
+# # replace ".." with Numpy's NaN
+# df_unclean[numeric_columns] = df_unclean[numeric_columns].replace(
+#     "..", np.nan).astype("float")
 
 # rename columns for clarity
 df_unclean.rename(columns={"1990": "hdi_1990", "2000": "hdi_2000", "2010": "hdi_2010", "2015": "hdi_2015",
@@ -109,5 +147,3 @@ fig.update_layout(legend_title="Countries",
                   height=700)
 
 st.plotly_chart(fig, use_container_width=True)
-
-
