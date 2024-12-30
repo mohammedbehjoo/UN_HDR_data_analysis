@@ -29,9 +29,10 @@ The dataset was downloaded from the [UNDP Human Development Data Center](https:/
 ## Requirements
 The following Python libraries are required:
 - `pandas` for data manipulation and analysis
-- `matplotlib` and `seaborn` for visualization
+- `matplotlib`, `seaborn`, and `plotly` for visualization
 - `scikit-learn` for statistical and machine learning techniques
 - `os` and `path` for file handling
+- `streamlit` for interactive visuals and dashboards
 
 To install the dependencies, run:
 ```bash
