@@ -26,7 +26,15 @@ def load_df(filename: str, sheet: str) -> pd.DataFrame:
 
 
 def preprocess_data(df: pd.dataFrame) -> pd.DataFrame:
+    """clean and preprocess the hdi trends data.
 
+    Args:
+        df (pd.dataFrame): the input dataframe
+
+    Returns:
+        pd.DataFrame: the cleaned dataframe
+    """
+    
     # standardize column names snd types
     df.columns = df.columns.astype(str)
     # remove the columns containing "Unnamed" in their names
