@@ -79,67 +79,51 @@ def transform_to_long_format(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: the output dataframe that is in long format.
     """
-    
+
     long_df = pd.melt(
-    df,
-    id_vars=["country"],
-    value_vars=[col for col in df.columns if col.startswith("hdi_")],
-    var_name="year",
-    value_name="hdi"
-)
+        df,
+        id_vars=["country"],
+        value_vars=[col for col in df.columns if col.startswith("hdi_")],
+        var_name="year",
+        value_name="hdi"
+    )
     long_df["year"] = long_df["year"].str.extract(r"(\d{4})").astype(int)
-    
+
     return long_df
 
-    # # read the excel file's "HDI trends sheet".
-    # df_unclean = load_df(
-    #     "HDR23-24_Statistical_Annex_Tables_1-7.xlsx", "HDI trends")
 
-    # # make the columns type as str for processing.
-    # df_unclean.columns = df_unclean.columns.astype(str)
+def plot_hdi_trends(data: pd.DataFrame, countries: list) -> None:
 
-    # # remove the columns containing "Unnamed" in their names
-    # df_unclean = df_unclean.loc[:, ~df_unclean.columns.str.contains("^Unnamed")]
+    # filter data based on selected countries
+    filtered_data = data[data["country"].isin(countries)]
+    
+    # create the plotly line chart
+    fig = px.line(
+        filtered_data,
+        x="year",
+        y="hdi",
+        color="country",
+        title="HDI Trends Over Time",
+        labels={"hdi": "HDI", "year": "Year", "country": "Country"}
+    )
+    
+    # update traces to make all lines dashed
+    fig.for_each_trace(lambda trace: trace.update(
+        line=dict(dash="dash", width=1), opacity=0.5))
 
-    # # there is a column named "a". drop it
-    # df_unclean.drop(["a"], inplace=True, axis=1)
+    # add interactivity
+    fig.update_traces(mode="lines+markers")
+    fig.update_layout(legend_title="Countries",
+                    width=2000,
+                    height=700)
 
-    # # standardize column names
-    # df_unclean.columns = df_unclean.columns.str.strip().str.lower().str.replace(' ', '_')
+    st.plotly_chart(fig, use_container_width=True)
+    
+# main workflow
 
-    # # get the numeric columns
-    # numeric_columns = df_unclean.columns[2:]
 
-    # # replace ".." with Numpy's NaN
-    # df_unclean[numeric_columns] = df_unclean[numeric_columns].replace(
-    #     "..", np.nan).astype("float")
-
-    # # rename columns for clarity
-    # df_unclean.rename(columns={"1990": "hdi_1990", "2000": "hdi_2000", "2010": "hdi_2010", "2015": "hdi_2015",
-    #                            "2019": "hdi_2019",
-    #                            "2020": "hdi_2020", "2021": "hdi_2021", "2022": "hdi_2022",
-    #                            "2015-2022": "change in hdi rank 2015-2022",
-    #                            "1990-2000": "avg hdi growth (%) 1990-2000",
-    #                            "2000-2010": "avg hdi growth (%) 2000-2010",
-    #                            "2010-2022": "avg hdi growth (%) 2010-2022",
-    #                            "1990-2022": "avg hdi growth (%) 1990-2022"}, inplace=True)
-
-    # now let's create a visual for trends
-
-    # reshape data from wide to long format
-# df_long = pd.melt(
-#     df_unclean,
-#     id_vars=["country"],
-#     value_vars=["hdi_1990", "hdi_2000", "hdi_2010", "hdi_2015",
-#                 "hdi_2019", "hdi_2020", "hdi_2021", "hdi_2022"],
-#     var_name="year",
-#     value_name="hdi"
-# )
-
-# # clean your name column
-# df_long["year"] = df_long["year"].str.extract(r"(\d{4})").astype(int)
-
-# get the top 10 countries for default option
+ 
+    # get the top 10 countries for default option
 top_5_countries = df_unclean.sort_values(
     "hdi_rank")["country"].head(5).tolist()
 
