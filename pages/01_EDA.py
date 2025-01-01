@@ -132,6 +132,48 @@ def treemap_plot(df:pd.DataFrame)->None:
     title="GNI per capita treemap"
 )
     st.plotly_chart(fig)
+    
+
+def correlation_heatmap_plot(df:pd.DataFrame)->None:
+    # correlation matrix heatmap
+    # calculate the correlation matrix
+    # first we have to get the numeric columns
+    numeric_df=df.select_dtypes(include=["float64"])
+    
+    # exclude the HDI_rank from the numeric columns
+    numeric_df=numeric_df[numeric_df.columns[~numeric_df.columns.isin(["HDI_rank"])]]
+
+    # calculate the correlation matrix of numeric_df
+    correlation_matrix=numeric_df.corr()
+
+    # melt the correlation matrix to long format
+    correlation_melted=correlation_matrix.reset_index().melt(id_vars="index")
+    correlation_melted.columns=["Variable 1","Variable 2","Correlation"]
+
+    fig = px.imshow(
+        correlation_matrix,
+        labels={"color": "Correlation Coefficient"},
+        x=correlation_matrix.columns,
+        y=correlation_matrix.index,
+        color_continuous_scale="RdBu_r",
+        zmin=-1,
+        zmax=1,
+    )
+
+    # Add interactivity to hover
+    fig.update_traces(
+        hovertemplate="Correlation between %{x} and %{y}: %{z:.2f}<extra></extra>"
+    )
+
+    # Add title and layout adjustments
+    fig.update_layout(
+        
+        xaxis_title="Indicators",
+        yaxis_title="Indicators",
+        width=800,
+        height=600,
+    )
+    st.plotly_chart(fig)
 
 if __name__ == "__main__":
     st.title("📌 Human Development Reports (HDR)")
@@ -175,9 +217,13 @@ if __name__ == "__main__":
             scatter_plot(clean_data, x_column, y_column)
 
         with col2:
+            st.title("Pie Chart")
             selected_column = st.selectbox(
                 "Choose a column:", options=numeric_columns)
             pie_plot(clean_data, "Country", selected_column)
+            
+            st.title("Correlation matrix heatmap")
+            correlation_heatmap_plot(clean_data)
 
     st.title("Parallel coordinates plot")
     st.markdown(
