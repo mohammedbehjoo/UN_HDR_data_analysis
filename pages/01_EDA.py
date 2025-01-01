@@ -90,6 +90,29 @@ def scatter_plot(df: pd.DataFrame, x_column, y_column) -> None:
     st.plotly_chart(fig)
 
 
+def parallel_coordinates_plot(df: pd.DataFrame, selected_column, color_column) -> None:
+    fig = px.parallel_coordinates(
+        df,
+        dimensions=selected_column,
+        color=color_column,
+        labels={col: col.replace("_", "") for col in selected_column},
+        color_continuous_scale=px.colors.sequential.Purples
+    )
+
+    # update the plot. add margins
+    fig.update_layout(
+        margin=dict(
+            l=100,
+            r=100,
+            t=50,
+            b=50
+        )
+    )
+
+    # Display the plot in Streamlit
+    st.plotly_chart(fig, use_container_width=True)
+
+
 if __name__ == "__main__":
     st.title("📌 Human Development Reports (HDR)")
 
@@ -119,11 +142,37 @@ if __name__ == "__main__":
             y_column = st.selectbox(
                 "Choose a column for y axis:", options=numeric_columns, key="y"
             )
+            st.title("Histogram Plot")
             st.subheader(f"{x_column} vs. {y_column}")
             histogram_plot(clean_data, x_column, y_column)
-            scatter_plot(clean_data,x_column,y_column)
+
+            st.title(f"Scatter plot of {x_column} vs. {y_column}")
+            st.markdown(
+                f"This scatter plot visualizes the relationship between {x_column} and {y_column}")
+            scatter_plot(clean_data, x_column, y_column)
 
         with col2:
             selected_column = st.selectbox(
                 "Choose a column:", options=numeric_columns)
             pie_plot(clean_data, "Country", selected_column)
+
+    st.title("Parallel coordinates plot")
+    st.markdown(
+        "Analyze multiple dimensions simultaneously using a parallel coordinates plot.")
+
+    # select columns for the plot
+    selected_column = st.multiselect(
+        "Select dimensions to include in the plot:",
+        options=clean_data.columns[1:-1],
+        default=["HDI", "Life expectancy at birth",
+                 "Expected years of schooling"]
+    )
+
+    # dropdown menu for color scale customization
+    color_column = st.selectbox(
+        "Select a column for the color scale:",
+        options=selected_column,
+        index=0  # Default to the first dimension
+    )
+
+    parallel_coordinates_plot(clean_data,selected_column,color_column)
