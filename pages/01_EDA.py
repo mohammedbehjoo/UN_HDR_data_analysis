@@ -96,7 +96,23 @@ def scatter_plot(df: pd.DataFrame, x_column, y_column) -> None:
     st.plotly_chart(fig)
 
 
-def parallel_coordinates_plot(df: pd.DataFrame, selected_column, color_column) -> None:
+def parallel_coordinates_plot(df: pd.DataFrame,) -> None:
+    
+    # select columns for the plot
+    selected_column = st.multiselect(
+        "Select dimensions to include in the plot:",
+        options=clean_data.columns[1:-1],
+        default=["HDI", "Life expectancy at birth",
+                 "Expected years of schooling"]
+    )
+
+    # dropdown menu for color scale customization
+    color_column = st.selectbox(
+        "Select a column for the color scale:",
+        options=selected_column,
+        index=0  # Default to the first dimension
+    )
+    
     if selected_column:
         fig = px.parallel_coordinates(
             df,
@@ -175,6 +191,40 @@ def correlation_heatmap_plot(df:pd.DataFrame)->None:
     )
     st.plotly_chart(fig)
 
+
+def bar_chart_plot(df:pd.DataFrame)->None:
+    toggle = st.radio("View:", ["Top 10", "Bottom 10"], horizontal=True)
+
+    if toggle == "Top 10":
+        filtered_df = df.nsmallest(10, "HDI_rank")
+        title = "Top 10 countries by HDI rank"
+    else:
+        filtered_df = df.nlargest(10, "HDI_rank")
+        title = "Bottom 10 countries by HDI rank"
+
+    # create bar chart
+    fig = px.bar(filtered_df,
+                x="Country",
+                y="HDI",
+                text="HDI_rank",
+                title=title,
+                labels={"HDI": "Human Development Index", "Country": "Country"},
+                color="HDI",
+                color_continuous_scale="Viridis")
+
+    fig.update_traces(
+        texttemplate="Rank: %{text}", textposition="outside"
+    )
+
+    fig.update_layout(
+        xaxis_title="Country",
+        yaxis_title="HDI",
+        coloraxis_showscale=False,
+        margin=dict(l=40, r=40, t=60, b=40)
+    )
+
+    st.plotly_chart(fig)
+
 if __name__ == "__main__":
     st.title("📌 Human Development Reports (HDR)")
 
@@ -225,29 +275,18 @@ if __name__ == "__main__":
             st.title("Correlation matrix heatmap")
             correlation_heatmap_plot(clean_data)
 
+    # parallel coordinates
     st.title("Parallel coordinates plot")
     st.markdown(
         "Analyze multiple dimensions simultaneously using a parallel coordinates plot.")
-
-    # select columns for the plot
-    selected_column = st.multiselect(
-        "Select dimensions to include in the plot:",
-        options=clean_data.columns[1:-1],
-        default=["HDI", "Life expectancy at birth",
-                 "Expected years of schooling"]
-    )
-
-    # dropdown menu for color scale customization
-    color_column = st.selectbox(
-        "Select a column for the color scale:",
-        options=selected_column,
-        index=0  # Default to the first dimension
-    )
-
-    parallel_coordinates_plot(clean_data, selected_column, color_column)
+    parallel_coordinates_plot(clean_data)
 
         # create a treemap
     st.title("Tree map of GNI per capita")
     st.markdown("This treemap represents the proportional income levels of countries, with box sizes indicating populationand colors representing GNI per capita")
-
     treemap_plot(merged_df)
+    
+    # bar chart
+    st.title("Bar chart of HDI rankings")
+    st.markdown("Explore top or bottom 10 countries based on HDI rank")
+    bar_chart_plot(clean_data)
