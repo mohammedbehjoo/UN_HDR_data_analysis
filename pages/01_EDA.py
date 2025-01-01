@@ -78,6 +78,18 @@ def pie_plot(df: pd.DataFrame, names, selected_column) -> None:
     st.plotly_chart(fig)
 
 
+def scatter_plot(df: pd.DataFrame, x_column, y_column) -> None:
+    fig = px.scatter(
+        df,
+        x=x_column,
+        y=y_column,
+        size=x_column,
+        hover_data="HDI",
+        color=x_column
+    )
+    st.plotly_chart(fig)
+
+
 if __name__ == "__main__":
     st.title("📌 Human Development Reports (HDR)")
 
@@ -109,6 +121,7 @@ if __name__ == "__main__":
             )
             st.subheader(f"{x_column} vs. {y_column}")
             histogram_plot(clean_data, x_column, y_column)
+            scatter_plot(clean_data,x_column,y_column)
 
         with col2:
             selected_column = st.selectbox(
