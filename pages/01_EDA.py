@@ -62,16 +62,33 @@ def preprocess_data(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Index]:
     return df, numeric_columns
 
 
-def histogram_plot(df: pd.DataFrame, x_column, y_column, histfunc: str = "avg") -> None:
+def histogram_plot(df: pd.DataFrame, histfunc: str = "avg") -> None:
+
+    st.title("Histogram Plot")
+    x_column = st.selectbox(
+        "Choose a column for x axis:", options=numeric_columns, key="x_histogram"
+    )
+
+    y_column = st.selectbox(
+        "Choose a column for y axis:", options=numeric_columns, key="y_histogram"
+    )
+
+    st.subheader(f"{x_column} vs. {y_column}")
+
     fig = px.histogram(df, x=x_column,
                        y=y_column, template="seaborn", histfunc="avg")
     st.plotly_chart(fig)
 
 
-def pie_plot(df: pd.DataFrame, names, selected_column) -> None:
+def pie_plot(df: pd.DataFrame) -> None:
+
+    st.title("Pie Chart")
+    selected_column = st.selectbox(
+        "Choose a column:", options=numeric_columns)
+
     fig = px.pie(
         df.head(10),
-        names=names,
+        names="Country",
         values=selected_column,
         height=600,
         hover_data=selected_column,
@@ -84,7 +101,19 @@ def pie_plot(df: pd.DataFrame, names, selected_column) -> None:
     st.plotly_chart(fig)
 
 
-def scatter_plot(df: pd.DataFrame, x_column, y_column) -> None:
+def scatter_plot(df: pd.DataFrame) -> None:
+    x_column = st.selectbox(
+        "Choose a column for x axis:", options=numeric_columns, key="x_scatter"
+    )
+
+    y_column = st.selectbox(
+        "Choose a column for y axis:", options=numeric_columns, key="y_scatter"
+    )
+
+    st.title(f"Scatter plot of {x_column} vs. {y_column}")
+    st.markdown(
+        f"This scatter plot visualizes the relationship between {x_column} and {y_column}")
+
     fig = px.scatter(
         df,
         x=x_column,
@@ -97,7 +126,11 @@ def scatter_plot(df: pd.DataFrame, x_column, y_column) -> None:
 
 
 def parallel_coordinates_plot(df: pd.DataFrame,) -> None:
-    
+
+    st.title("Parallel coordinates plot")
+    st.markdown(
+        "Analyze multiple dimensions simultaneously using a parallel coordinates plot.")
+
     # select columns for the plot
     selected_column = st.multiselect(
         "Select dimensions to include in the plot:",
@@ -112,7 +145,7 @@ def parallel_coordinates_plot(df: pd.DataFrame,) -> None:
         options=selected_column,
         index=0  # Default to the first dimension
     )
-    
+
     if selected_column:
         fig = px.parallel_coordinates(
             df,
@@ -138,33 +171,41 @@ def parallel_coordinates_plot(df: pd.DataFrame,) -> None:
         st.warning("Please select at least one dimension to create the plot.")
 
 
-def treemap_plot(df:pd.DataFrame)->None:
-    fig = px.treemap(
-    df,
-    path=["Country"],  # hierarchy (only Country here)
-    values="Population",  # Box size
-    color="GNIPC",  # color based on GNI per capita
-    labels={"GNIPC": "GNI per capita (USD)"},
-    title="GNI per capita treemap"
-)
-    st.plotly_chart(fig)
-    
+def treemap_plot(df: pd.DataFrame) -> None:
 
-def correlation_heatmap_plot(df:pd.DataFrame)->None:
+    st.title("Tree map of GNI per capita")
+    st.markdown("This treemap represents the proportional income levels of countries, with box sizes indicating populationand colors representing GNI per capita")
+    
+    fig = px.treemap(
+        df,
+        path=["Country"],  # hierarchy (only Country here)
+        values="Population",  # Box size
+        color="GNIPC",  # color based on GNI per capita
+        labels={"GNIPC": "GNI per capita (USD)"},
+        title="GNI per capita treemap"
+    )
+    st.plotly_chart(fig)
+
+
+def correlation_heatmap_plot(df: pd.DataFrame) -> None:
+
+    st.title("Correlation matrix heatmap")
+
     # correlation matrix heatmap
     # calculate the correlation matrix
     # first we have to get the numeric columns
-    numeric_df=df.select_dtypes(include=["float64"])
-    
+    numeric_df = df.select_dtypes(include=["float64"])
+
     # exclude the HDI_rank from the numeric columns
-    numeric_df=numeric_df[numeric_df.columns[~numeric_df.columns.isin(["HDI_rank"])]]
+    numeric_df = numeric_df[numeric_df.columns[~numeric_df.columns.isin([
+                                                                        "HDI_rank"])]]
 
     # calculate the correlation matrix of numeric_df
-    correlation_matrix=numeric_df.corr()
+    correlation_matrix = numeric_df.corr()
 
     # melt the correlation matrix to long format
-    correlation_melted=correlation_matrix.reset_index().melt(id_vars="index")
-    correlation_melted.columns=["Variable 1","Variable 2","Correlation"]
+    correlation_melted = correlation_matrix.reset_index().melt(id_vars="index")
+    correlation_melted.columns = ["Variable 1", "Variable 2", "Correlation"]
 
     fig = px.imshow(
         correlation_matrix,
@@ -183,7 +224,7 @@ def correlation_heatmap_plot(df:pd.DataFrame)->None:
 
     # Add title and layout adjustments
     fig.update_layout(
-        
+
         xaxis_title="Indicators",
         yaxis_title="Indicators",
         width=800,
@@ -192,7 +233,11 @@ def correlation_heatmap_plot(df:pd.DataFrame)->None:
     st.plotly_chart(fig)
 
 
-def bar_chart_plot(df:pd.DataFrame)->None:
+def bar_chart_plot(df: pd.DataFrame) -> None:
+    
+    st.title("Bar chart of HDI rankings")
+    st.markdown("Explore top or bottom 10 countries based on HDI rank")
+    
     toggle = st.radio("View:", ["Top 10", "Bottom 10"], horizontal=True)
 
     if toggle == "Top 10":
@@ -204,13 +249,14 @@ def bar_chart_plot(df:pd.DataFrame)->None:
 
     # create bar chart
     fig = px.bar(filtered_df,
-                x="Country",
-                y="HDI",
-                text="HDI_rank",
-                title=title,
-                labels={"HDI": "Human Development Index", "Country": "Country"},
-                color="HDI",
-                color_continuous_scale="Viridis")
+                 x="Country",
+                 y="HDI",
+                 text="HDI_rank",
+                 title=title,
+                 labels={"HDI": "Human Development Index",
+                         "Country": "Country"},
+                 color="HDI",
+                 color_continuous_scale="Viridis")
 
     fig.update_traces(
         texttemplate="Rank: %{text}", textposition="outside"
@@ -224,6 +270,7 @@ def bar_chart_plot(df:pd.DataFrame)->None:
     )
 
     st.plotly_chart(fig)
+
 
 if __name__ == "__main__":
     st.title("📌 Human Development Reports (HDR)")
@@ -245,48 +292,22 @@ if __name__ == "__main__":
         pop_gnipc_df["Population"] *= 1_000_000
 
         # merge two dataframes
-        merged_df=merge_dataframes(clean_data,pop_gnipc_df)
-        
+        merged_df = merge_dataframes(clean_data, pop_gnipc_df)
+
         # create 2 columns
         col1, col2 = st.columns(2)
-
         with col1:
-            x_column = st.selectbox(
-                "Choose a column for x axis:", options=numeric_columns, key="x"
-            )
-            y_column = st.selectbox(
-                "Choose a column for y axis:", options=numeric_columns, key="y"
-            )
-            st.title("Histogram Plot")
-            st.subheader(f"{x_column} vs. {y_column}")
-            histogram_plot(clean_data, x_column, y_column)
-
-            st.title(f"Scatter plot of {x_column} vs. {y_column}")
-            st.markdown(
-                f"This scatter plot visualizes the relationship between {x_column} and {y_column}")
-            scatter_plot(clean_data, x_column, y_column)
+            histogram_plot(clean_data)
+            scatter_plot(clean_data)
 
         with col2:
-            st.title("Pie Chart")
-            selected_column = st.selectbox(
-                "Choose a column:", options=numeric_columns)
-            pie_plot(clean_data, "Country", selected_column)
-            
-            st.title("Correlation matrix heatmap")
+            pie_plot(clean_data)
             correlation_heatmap_plot(clean_data)
 
     # parallel coordinates
-    st.title("Parallel coordinates plot")
-    st.markdown(
-        "Analyze multiple dimensions simultaneously using a parallel coordinates plot.")
     parallel_coordinates_plot(clean_data)
-
-        # create a treemap
-    st.title("Tree map of GNI per capita")
-    st.markdown("This treemap represents the proportional income levels of countries, with box sizes indicating populationand colors representing GNI per capita")
+    # create a treemap
     treemap_plot(merged_df)
-    
+
     # bar chart
-    st.title("Bar chart of HDI rankings")
-    st.markdown("Explore top or bottom 10 countries based on HDI rank")
     bar_chart_plot(clean_data)
