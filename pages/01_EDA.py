@@ -24,6 +24,12 @@ def load_data(file_name: str) -> pd.DataFrame:
     return pd.read_excel(file_name)
 
 
+def merge_dataframes(df_1: pd.DataFrame, df_2: pd.DataFrame, on: str = "Country", how: str = "left") -> pd.DataFrame:
+    df_merged = df_1.merge(df_2, on="Country", how="left")
+    df_merged = df_merged.reset_index(drop=True)
+    return df_merged
+
+
 def preprocess_data(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Index]:
     # filter and remove the columns that their names contain "unnamed".
     df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
@@ -91,27 +97,41 @@ def scatter_plot(df: pd.DataFrame, x_column, y_column) -> None:
 
 
 def parallel_coordinates_plot(df: pd.DataFrame, selected_column, color_column) -> None:
-    fig = px.parallel_coordinates(
-        df,
-        dimensions=selected_column,
-        color=color_column,
-        labels={col: col.replace("_", "") for col in selected_column},
-        color_continuous_scale=px.colors.sequential.Purples
-    )
-
-    # update the plot. add margins
-    fig.update_layout(
-        margin=dict(
-            l=100,
-            r=100,
-            t=50,
-            b=50
+    if selected_column:
+        fig = px.parallel_coordinates(
+            df,
+            dimensions=selected_column,
+            color=color_column,
+            labels={col: col.replace("_", "") for col in selected_column},
+            color_continuous_scale=px.colors.sequential.Purples
         )
-    )
 
-    # Display the plot in Streamlit
-    st.plotly_chart(fig, use_container_width=True)
+        # update the plot. add margins
+        fig.update_layout(
+            margin=dict(
+                l=100,
+                r=100,
+                t=50,
+                b=50
+            )
+        )
 
+        # Display the plot in Streamlit
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.warning("Please select at least one dimension to create the plot.")
+
+
+def treemap_plot(df:pd.DataFrame)->None:
+    fig = px.treemap(
+    df,
+    path=["Country"],  # hierarchy (only Country here)
+    values="Population",  # Box size
+    color="GNIPC",  # color based on GNI per capita
+    labels={"GNIPC": "GNI per capita (USD)"},
+    title="GNI per capita treemap"
+)
+    st.plotly_chart(fig)
 
 if __name__ == "__main__":
     st.title("📌 Human Development Reports (HDR)")
@@ -132,6 +152,9 @@ if __name__ == "__main__":
         # multiply the poplulation column by one million.
         pop_gnipc_df["Population"] *= 1_000_000
 
+        # merge two dataframes
+        merged_df=merge_dataframes(clean_data,pop_gnipc_df)
+        
         # create 2 columns
         col1, col2 = st.columns(2)
 
@@ -175,4 +198,10 @@ if __name__ == "__main__":
         index=0  # Default to the first dimension
     )
 
-    parallel_coordinates_plot(clean_data,selected_column,color_column)
+    parallel_coordinates_plot(clean_data, selected_column, color_column)
+
+        # create a treemap
+    st.title("Tree map of GNI per capita")
+    st.markdown("This treemap represents the proportional income levels of countries, with box sizes indicating populationand colors representing GNI per capita")
+
+    treemap_plot(merged_df)
