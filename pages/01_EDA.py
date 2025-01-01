@@ -1,19 +1,16 @@
 from typing import Tuple
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 import plotly.express as px
-import plotly.graph_objects as go
 import os
-import io
 from dotenv import load_dotenv
 import warnings
 
 st.set_page_config(page_title="EDA",
-                   page_icon="📊", layout="wide")
+                   page_icon="📊",
+                   layout="wide")
 
 warnings.filterwarnings("ignore")
-
 load_dotenv("config.env")
 
 # loading data and cache it.
@@ -21,16 +18,42 @@ load_dotenv("config.env")
 
 @st.cache_data
 def load_data(file_name: str) -> pd.DataFrame:
+    """Load data from an EXcel file and cache it for faster reloading.
+
+    Args:
+        file_name (str): name or address of the file
+
+    Returns:
+        pd.DataFrame: the raw dataframe
+    """
     return pd.read_excel(file_name)
 
 
 def merge_dataframes(df_1: pd.DataFrame, df_2: pd.DataFrame, on: str = "Country", how: str = "left") -> pd.DataFrame:
-    df_merged = df_1.merge(df_2, on="Country", how="left")
-    df_merged = df_merged.reset_index(drop=True)
-    return df_merged
+    """Merge two dataframes on a specified column.
+
+    Args:
+        df_1 (pd.DataFrame): the first dataframe
+        df_2 (pd.DataFrame): the second dataframe
+        on (str, optional): _description_. Defaults to "Country".
+        how (str, optional): _description_. Defaults to "left".
+
+    Returns:
+        pd.DataFrame: the output dataframe that is merged.
+    """
+    return df_1.merge(df_2, on=on, how=how).reset_index(drop=True)
 
 
 def preprocess_data(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Index]:
+    """Preprocess the dataframe by renaming columns, converting data types, and handling missing values.
+
+    Args:
+        df (pd.DataFrame): the raw dataframe
+
+    Returns:
+        Tuple[pd.DataFrame, pd.Index]: return a dataframe and pandas index
+    """
+
     # filter and remove the columns that their names contain "unnamed".
     df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
     # rename columns for clarity
@@ -39,7 +62,7 @@ def preprocess_data(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Index]:
     # rename the columns to have better namings
     df.rename(columns=rename_dict, inplace=True)
     # Convert specified columns to numeric values
-    numeric_columns_to_convert = [
+    numeric_columns = [
         "HDI",
         "Expected years of schooling",
         "Mean years of schooling",
@@ -48,23 +71,31 @@ def preprocess_data(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Index]:
         "HDI_rank"
     ]
     # cast the specified columns to the numeric values
-    df[numeric_columns_to_convert] = df[numeric_columns_to_convert].apply(
+    df[numeric_columns] = df[numeric_columns].apply(
         pd.to_numeric, errors="coerce")
+
     # drop the HDI rank column. it was redundant.
     if "HDI rank" in df.columns:
         df.drop("HDI rank", inplace=True, axis=1)
+
     # get rid rows with missing values
     df = df.dropna()
     # get the numeric columns only
-    numeric_columns = df.select_dtypes(include="float64").columns
-    # exclude the last column
-    numeric_columns = numeric_columns[:-1]
+    numeric_columns = df.select_dtypes(include="float64").columns[:-1]
     return df, numeric_columns
 
 
-def histogram_plot(df: pd.DataFrame, histfunc: str = "avg") -> None:
+# visualization functions
+def histogram_plot(df: pd.DataFrame, numeric_columns: pd.Index, histfunc: str = "avg") -> None:
+    """Render a histogram plot based on user-selected columns.
+
+    Args:
+        df (pd.DataFrame): _description_
+        histfunc (str, optional): _description_. Defaults to "avg".
+    """
 
     st.title("Histogram Plot")
+
     x_column = st.selectbox(
         "Choose a column for x axis:", options=numeric_columns, key="x_histogram"
     )
@@ -76,15 +107,18 @@ def histogram_plot(df: pd.DataFrame, histfunc: str = "avg") -> None:
     st.subheader(f"{x_column} vs. {y_column}")
 
     fig = px.histogram(df, x=x_column,
-                       y=y_column, template="seaborn", histfunc="avg")
+                       y=y_column, template="seaborn", histfunc=histfunc)
     st.plotly_chart(fig)
 
 
-def pie_plot(df: pd.DataFrame) -> None:
+def pie_plot(df: pd.DataFrame, numeric_columns: pd.Index) -> None:
+    """Render a pie chart based on user-selected columns.
 
+    Args:
+        df (pd.DataFrame): _description_
+    """
     st.title("Pie Chart")
-    selected_column = st.selectbox(
-        "Choose a column:", options=numeric_columns)
+    selected_column = st.selectbox("Choose a column:", options=numeric_columns)
 
     fig = px.pie(
         df.head(10),
@@ -97,11 +131,11 @@ def pie_plot(df: pd.DataFrame) -> None:
 
     # modify to show the exact values on the pie chart
     fig.update_traces(textinfo="label+value")
-
     st.plotly_chart(fig)
 
 
-def scatter_plot(df: pd.DataFrame) -> None:
+def scatter_plot(df: pd.DataFrame, numeric_columns: pd.Index) -> None:
+    """Render a scatter plot to visualize relationships between two columns."""
     x_column = st.selectbox(
         "Choose a column for x axis:", options=numeric_columns, key="x_scatter"
     )
@@ -125,7 +159,8 @@ def scatter_plot(df: pd.DataFrame) -> None:
     st.plotly_chart(fig)
 
 
-def parallel_coordinates_plot(df: pd.DataFrame,) -> None:
+def parallel_coordinates_plot(df: pd.DataFrame) -> None:
+    """Render a parallel coordinates plot to analyze multiple dimensions."""
 
     st.title("Parallel coordinates plot")
     st.markdown(
@@ -175,7 +210,7 @@ def treemap_plot(df: pd.DataFrame) -> None:
 
     st.title("Tree map of GNI per capita")
     st.markdown("This treemap represents the proportional income levels of countries, with box sizes indicating populationand colors representing GNI per capita")
-    
+
     fig = px.treemap(
         df,
         path=["Country"],  # hierarchy (only Country here)
@@ -234,10 +269,9 @@ def correlation_heatmap_plot(df: pd.DataFrame) -> None:
 
 
 def bar_chart_plot(df: pd.DataFrame) -> None:
-    
+
     st.title("Bar chart of HDI rankings")
     st.markdown("Explore top or bottom 10 countries based on HDI rank")
-    
     toggle = st.radio("View:", ["Top 10", "Bottom 10"], horizontal=True)
 
     if toggle == "Top 10":
@@ -268,7 +302,6 @@ def bar_chart_plot(df: pd.DataFrame) -> None:
         coloraxis_showscale=False,
         margin=dict(l=40, r=40, t=60, b=40)
     )
-
     st.plotly_chart(fig)
 
 
@@ -290,24 +323,22 @@ if __name__ == "__main__":
             os.getenv("data_path"), "pop_gnipc.xlsx"))
         # multiply the poplulation column by one million.
         pop_gnipc_df["Population"] *= 1_000_000
-
         # merge two dataframes
         merged_df = merge_dataframes(clean_data, pop_gnipc_df)
 
         # create 2 columns
         col1, col2 = st.columns(2)
         with col1:
-            histogram_plot(clean_data)
-            scatter_plot(clean_data)
+            histogram_plot(clean_data,numeric_columns)
+            scatter_plot(clean_data,numeric_columns)
 
         with col2:
-            pie_plot(clean_data)
+            pie_plot(clean_data,numeric_columns)
             correlation_heatmap_plot(clean_data)
 
     # parallel coordinates
     parallel_coordinates_plot(clean_data)
     # create a treemap
     treemap_plot(merged_df)
-
     # bar chart
     bar_chart_plot(clean_data)
