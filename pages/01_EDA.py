@@ -14,8 +14,6 @@ warnings.filterwarnings("ignore")
 load_dotenv("config.env")
 
 # loading data and cache it.
-
-
 @st.cache_data
 def load_data(file_name: str) -> pd.DataFrame:
     """Load data from an EXcel file and cache it for faster reloading.
@@ -342,4 +340,3 @@ if __name__ == "__main__":
     treemap_plot(merged_df)
     # bar chart
     bar_chart_plot(clean_data)
-    
