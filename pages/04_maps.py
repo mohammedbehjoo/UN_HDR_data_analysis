@@ -88,7 +88,7 @@ def merge_dataframes(df_1: pd.DataFrame, df_2: pd.DataFrame, on: str = "Country"
 
 def choropleth_plot(df: pd.DataFrame) -> None:
 
-    st.title("HDI Across Countries")
+    st.header("HDI Across Countries")
     fig = go.Figure(data=go.Choropleth(
         locations=merged_df["Country"],
         locationmode="country names",
@@ -107,8 +107,22 @@ def choropleth_plot(df: pd.DataFrame) -> None:
     st.plotly_chart(fig, use_container_width=True)
 
 
-def foo():
-    pass
+def bubblemap_plot(df: pd.DataFrame) -> None:
+    
+    st.header("Bubble map: Population size across countries")
+    fig = px.scatter_geo(
+        merged_df,
+        locations="Country",
+        locationmode="country names",
+        size="Population",
+        color="HDI",
+        hover_name="Country",
+        hover_data={"Population": False, "Formatted Population": True},
+        projection="natural earth",
+        size_max=50
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
 
 
 # main workflow
@@ -123,4 +137,13 @@ if __name__ == "__main__":
     # merge two dataframes
     merged_df = merge_dataframes(clean_data_hdi, pop_gnipc_df)
 
-    choropleth_plot(merged_df)
+    # Format population with commas
+    merged_df["Formatted Population"] = merged_df["Population"].apply(
+        lambda x: f"{x:,.0f}")
+
+    col1,col2=st.columns(2)
+    
+    with col1:
+        choropleth_plot(merged_df)
+    with col2:
+        bubblemap_plot(merged_df)
