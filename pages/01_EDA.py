@@ -342,3 +342,4 @@ if __name__ == "__main__":
     treemap_plot(merged_df)
     # bar chart
     bar_chart_plot(clean_data)
+    
