@@ -13,18 +13,23 @@ st.set_page_config(page_title="EDA",
 warnings.filterwarnings("ignore")
 load_dotenv("config.env")
 
-# loading data and cache it.
+
 @st.cache_data
-def load_data(file_name: str) -> pd.DataFrame:
-    """Load data from an EXcel file and cache it for faster reloading.
+def load_data(file: str, sheet_name: str | None = None) -> dict[str, pd.DataFrame] | pd.DataFrame:
+    """
+    Load data from an Excel file into a DataFrame or a dictionary of DataFrames, and cache it.
 
     Args:
-        file_name (str): name or address of the file
+        file (str): The path or file-like object of the Excel file.
+        sheet_name (str | None): The name of the sheet to load. If None, all sheets are loaded.
 
     Returns:
-        pd.DataFrame: the raw dataframe
+        dict[str, pd.DataFrame] | pd.DataFrame:
+        - A dictionary of DataFrames if sheet_name is None.
+        - A single DataFrame if a specific sheet_name is provided.
     """
-    return pd.read_excel(file_name)
+    return pd.read_excel(file, sheet_name=sheet_name)
+
 
 
 def merge_dataframes(df_1: pd.DataFrame, df_2: pd.DataFrame, on: str = "Country", how: str = "left") -> pd.DataFrame:
@@ -312,27 +317,44 @@ if __name__ == "__main__":
 
     # create the df_hdi dataframe
     if uploaded_file:
-        # load and preprocess raw data
-        raw_data = load_data(uploaded_file.name)
-        st.success("Data is loaded successfully.")
-        clean_data, numeric_columns = preprocess_data(raw_data)
-        # load population and GNI data
-        pop_gnipc_df = load_data(os.path.join(
-            os.getenv("data_path"), "pop_gnipc.xlsx"))
-        # multiply the poplulation column by one million.
-        pop_gnipc_df["Population"] *= 1_000_000
-        # merge two dataframes
-        merged_df = merge_dataframes(clean_data, pop_gnipc_df)
+        # Store the uploaded file in session state
+        st.session_state["uploaded_file"] = uploaded_file
 
-        # create 2 columns
-        col1, col2 = st.columns(2)
-        with col1:
-            histogram_plot(clean_data,numeric_columns)
-            scatter_plot(clean_data,numeric_columns)
+        # Load and cache the data
+    if "data" not in st.session_state:
+        st.session_state["data"] = load_data(uploaded_file)
 
-        with col2:
-            pie_plot(clean_data,numeric_columns)
-            correlation_heatmap_plot(clean_data)
+    # Display sheet names
+    sheet_names = list(st.session_state["data"].keys())
+    st.write(f"Available Sheets: {sheet_names}")
+
+    # Option to preview a sheet
+    selected_sheet = st.selectbox(
+        "Select a sheet for raw data", options=sheet_names)
+
+    # load and preprocess raw data
+    raw_data = load_data(uploaded_file.name, selected_sheet)
+    st.success("Data is loaded successfully.")
+    clean_data, numeric_columns = preprocess_data(raw_data)
+    
+    # load population and GNI data
+    pop_gnipc_df = load_data(os.path.join(
+        os.getenv("data_path"), "pop_gnipc.xlsx"),sheet_name="Sheet1")
+    # multiply the poplulation column by one million.
+    pop_gnipc_df["Population"] *= 1_000_000
+    
+    # merge two dataframes
+    merged_df = merge_dataframes(clean_data, pop_gnipc_df)
+
+    # create 2 columns
+    col1, col2 = st.columns(2)
+    with col1:
+        histogram_plot(clean_data, numeric_columns)
+        scatter_plot(clean_data, numeric_columns)
+
+    with col2:
+        pie_plot(clean_data, numeric_columns)
+        correlation_heatmap_plot(clean_data)
 
     # parallel coordinates
     parallel_coordinates_plot(clean_data)

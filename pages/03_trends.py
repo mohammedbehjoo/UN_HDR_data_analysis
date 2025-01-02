@@ -8,9 +8,7 @@ import numpy as np
 st.set_page_config(page_title="Trends",
                    page_icon="📑")
 
-# TODO: lazy load data. cache teh data
-
-
+# lazy load data. cache the data
 @st.cache_data
 def load_data(filename: str, sheet: str) -> pd.DataFrame:
     """Load data from an excel file.
@@ -130,10 +128,11 @@ def plot_hdi_trends(data: pd.DataFrame, countries: list) -> None:
 
 # main workflow
 if __name__ == "__main__":
-    # load and preprocess the data
-    data_file = "HDR23-24_Statistical_Annex_Tables_1-7.xlsx"
-    sheet_name = "HDI trends"
-    raw_data = load_data(data_file, sheet_name)
+    # load data from the session state of streamlit.
+    if "data" in st.session_state:
+        raw_data=st.session_state["data"]["HDI trends"]
+    else:
+        st.warning("No data loaded! Please upload an excel file on the EDA page!")
     clean_data = preprocess_data(raw_data)
     # st.write(clean_data)
     long_data = transform_to_long_format(clean_data)

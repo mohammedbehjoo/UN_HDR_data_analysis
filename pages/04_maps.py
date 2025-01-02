@@ -127,8 +127,12 @@ def bubblemap_plot(df: pd.DataFrame) -> None:
 
 # main workflow
 if __name__ == "__main__":
-    raw_data_hdi = load_data(os.path.join(os.getenv(
-        "data_path"), "HDR23-24_Statistical_Annex_Tables_1-7.xlsx"), sheet="HDI")
+    # load data from the session state of streamlit.
+    if "data" in st.session_state:
+        raw_data_hdi = st.session_state["data"]["HDI"]
+    else:
+        st.warning("No data loaded! Please upload an excel file on the EDA page!")
+
     clean_data_hdi, _ = preprocess_data(raw_data_hdi)
     pop_gnipc_df = load_data(os.path.join(
         os.getenv("data_path"), "pop_gnipc.xlsx"), "Sheet1")
