@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 from dotenv import load_dotenv
 import os
 from typing import Tuple
@@ -67,6 +68,7 @@ def preprocess_data(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Index]:
     numeric_columns = df.select_dtypes(include="float64").columns[:-1]
     return df, numeric_columns
 
+
 def merge_dataframes(df_1: pd.DataFrame, df_2: pd.DataFrame, on: str = "Country", how: str = "left") -> pd.DataFrame:
     """Merge two dataframes on a specified column.
 
@@ -82,28 +84,43 @@ def merge_dataframes(df_1: pd.DataFrame, df_2: pd.DataFrame, on: str = "Country"
     return df_1.merge(df_2, on=on, how=how).reset_index(drop=True)
 
 # visualization functions
-def choropleth_plot(df:pd.DataFrame)->None:
-    
+
+
+def choropleth_plot(df: pd.DataFrame) -> None:
+
     st.title("HDI Across Countries")
-    fig=px.choropleth(
-        df,
-        locations="Country",
+    fig = go.Figure(data=go.Choropleth(
+        locations=merged_df["Country"],
         locationmode="country names",
-        color="HDI",
-        hover_name="Country",
-        color_continuous_scale="Viridis",
+        z=merged_df["HDI"],
+        colorscale="Blues",
+        colorbar_title="HDI"
+    ))
+
+    fig.update_layout(
+        geo=dict(
+            showframe=True,
+            showcoastlines=True,
+            projection_type="natural earth",
+        )
     )
-    st.plotly_chart(fig)
+    st.plotly_chart(fig, use_container_width=True)
+
+
+def foo():
+    pass
+
 
 # main workflow
-if __name__=="__main__":
-    raw_data_hdi=load_data(os.path.join(os.getenv("data_path"),"HDR23-24_Statistical_Annex_Tables_1-7.xlsx"),sheet="HDI")
-    clean_data_hdi,_=preprocess_data(raw_data_hdi)
+if __name__ == "__main__":
+    raw_data_hdi = load_data(os.path.join(os.getenv(
+        "data_path"), "HDR23-24_Statistical_Annex_Tables_1-7.xlsx"), sheet="HDI")
+    clean_data_hdi, _ = preprocess_data(raw_data_hdi)
     pop_gnipc_df = load_data(os.path.join(
-            os.getenv("data_path"), "pop_gnipc.xlsx"),"Sheet1")
+        os.getenv("data_path"), "pop_gnipc.xlsx"), "Sheet1")
     # multiply the poplulation column by one million.
     pop_gnipc_df["Population"] *= 1_000_000
     # merge two dataframes
     merged_df = merge_dataframes(clean_data_hdi, pop_gnipc_df)
-    
+
     choropleth_plot(merged_df)
