@@ -115,7 +115,21 @@ def display_correlation_matrix(df: pd.DataFrame) -> None:
     st.subheader("Correlation Matrix for Numeric Columns")
     st.dataframe(correlation_matrix)
     # download it
-    convert_df_to_csv(correlation_matrix,"corr.csv")
+    convert_df_to_csv(correlation_matrix, "corr.csv")
+
+
+def group_data(df: pd.DataFrame) -> None:
+    column = st.selectbox("Select a column to group by:",
+                          options=df.columns[1:-1], key="groupby")
+
+    grouped_by = df.groupby(column).agg({
+        "HDI": ["mean", "median", "min", "max"],
+        "Life expectancy at birth": ["mean", "median", "min", "max"]
+    })
+    st.subheader(f"Aggregated Data Grouped by {column}")
+    st.write(grouped_by)
+
+    convert_df_to_csv(df,"groupby.csv")
 
 
 if __name__ == "__main__":
@@ -150,3 +164,6 @@ if __name__ == "__main__":
 
     # pairwise correlation
     display_correlation_matrix(clean_data)
+
+    # group by data
+    group_data(clean_data)
