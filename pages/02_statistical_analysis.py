@@ -108,6 +108,16 @@ def box_plot(df: pd.DataFrame) -> None:
     st.plotly_chart(fig)
 
 
+def display_correlation_matrix(df: pd.DataFrame) -> None:
+    numeric_df = df.select_dtypes(include=['float64', 'int64'])
+    correlation_matrix = numeric_df.corr()
+
+    st.subheader("Correlation Matrix for Numeric Columns")
+    st.dataframe(correlation_matrix)
+    # download it
+    convert_df_to_csv(correlation_matrix,"corr.csv")
+
+
 if __name__ == "__main__":
     # load data from the session state of streamlit.
     if "data" in st.session_state:
@@ -137,3 +147,6 @@ if __name__ == "__main__":
     #  call histogram andd boxplot functions
     histogram_plot(clean_data)
     box_plot(clean_data)
+
+    # pairwise correlation
+    display_correlation_matrix(clean_data)
