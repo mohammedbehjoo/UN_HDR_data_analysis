@@ -2,6 +2,8 @@ import pandas as pd
 from typing import Tuple
 import streamlit as st
 import plotly.express as px
+import plotly.graph_objects as go
+
 
 st.set_page_config(
     page_title="Statistical Analysis",
@@ -62,8 +64,48 @@ def convert_df_to_csv(df: pd.DataFrame, file_name: str):
 # descriptive statistics
 
 
-def foo():
-    pass
+def histogram_plot(df: pd.DataFrame) -> None:
+
+    # Add a dropdown to select which column to plot
+    column = st.selectbox(
+        "Select a column to view summary stats:", options=df.columns[1:-1])
+
+    nbins = st.select_slider(
+        "Select number of bins of the histogram plot:", options=range(0, 51))
+
+    st.subheader(f"Histogram of {column}")
+    fig = px.histogram(
+        df,
+        x=column,
+        nbins=nbins,
+        labels={column: column},
+        color_discrete_sequence=['skyblue']
+    )
+    st.plotly_chart(fig)
+
+
+def box_plot(df: pd.DataFrame) -> None:
+
+    # Add a dropdown to select which column to plot
+    column = st.selectbox(
+        "Select a column to view summary stats:", options=df.columns[1:-1], key="boxplot")
+
+    # Plot a Box Plot
+    st.subheader(f"Box Plot of {column}")
+
+    fig = px.box(
+        df,
+        y=column,
+        labels={column: column},
+        color_discrete_sequence=['lightcoral']
+    )
+
+    # TODO: Update hover template to show only the value and remove fences. It does not work now
+    fig.update_traces(
+        hovertemplate="<br>Value: %{y}<extra></extra>"
+    )
+
+    st.plotly_chart(fig)
 
 
 if __name__ == "__main__":
@@ -84,8 +126,14 @@ if __name__ == "__main__":
     convert_df_to_csv(summary_stats, "summary_stats.csv")
 
     column = st.selectbox(
-        "Select a column to view summary stats:", options=clean_data.columns[1:-1])
+        "Select a column to view summary stats:", options=clean_data.columns[1:-1], key="summary_stats")
     st.subheader(f"Summary statistics of {column} column")
     summary_stats = clean_data[column].describe()
     st.write(summary_stats)
     convert_df_to_csv(summary_stats, f"summary stats of {column} column.csv")
+
+    # data distribution analysis
+    st.title("Data Distribution Analysis")
+    #  call histogram andd boxplot functions
+    histogram_plot(clean_data)
+    box_plot(clean_data)
